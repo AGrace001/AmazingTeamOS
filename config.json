@@ -1,0 +1,18 @@
+{
+  "appName": "TheAmazingTeamOs",
+  "brandName": "The Amazing Team",
+  "tagline": "Run The Amazing Team from one app, completely free, forever",
+  "primaryColor": "#df1e79",
+  "accentColor": "#213fa0",
+  "darkColor": "#050505",
+  "logo": "/logo.png",
+  "icon": "/icon-512.png",
+  "supportEmail": "support@example.com",
+  "currency": "NGN",
+  "freeForever": true,
+  "trialDays": 0,
+  "plans": [
+    {"id": "free", "name": "Free Forever", "maxMembers": null, "monthly": 0, "features": ["Unlimited members, no limits", "Unlimited offices", "Attendance, earnings and training", "Prospects board, no limit", "AI assistant, no limit", "Team goals, leaderboard & team prospects", "Office linking", "Your own office address"]}
+  ],
+  "proAddon": null
+}
