@@ -37,7 +37,7 @@ def init():
     CREATE TABLE IF NOT EXISTS checklist(id INTEGER PRIMARY KEY, office_id INTEGER, user_id INTEGER, date TEXT, text TEXT, done INTEGER DEFAULT 0);
     CREATE TABLE IF NOT EXISTS resources(id INTEGER PRIMARY KEY, office_id INTEGER, title TEXT, kind TEXT, link TEXT, created_by INTEGER);
     CREATE TABLE IF NOT EXISTS fund_entries(id INTEGER PRIMARY KEY, office_id INTEGER, user_id INTEGER, kind TEXT, amount REAL, description TEXT, date TEXT);
-    CREATE TABLE IF NOT EXISTS profiles(user_id INTEGER PRIMARY KEY, phone TEXT, sponsor TEXT, status TEXT DEFAULT 'Member', why TEXT);
+    CREATE TABLE IF NOT EXISTS profiles(user_id INTEGER PRIMARY KEY, phone TEXT, sponsor TEXT, status TEXT DEFAULT 'Member', why TEXT, photo TEXT);
     CREATE TABLE IF NOT EXISTS office_settings(office_id INTEGER, key TEXT, value TEXT, UNIQUE(office_id,key));
     CREATE TABLE IF NOT EXISTS pending_invites(id INTEGER PRIMARY KEY, office_id INTEGER, name TEXT, email TEXT, phone TEXT, requested TEXT);
     CREATE TABLE IF NOT EXISTS external_people(id INTEGER PRIMARY KEY, office_id INTEGER, name TEXT, status TEXT, sponsor TEXT, location TEXT, on_app INTEGER DEFAULT 0);
@@ -83,7 +83,7 @@ def init():
             if not c.execute("SELECT 1 FROM users WHERE email=?",(em,)).fetchone():
                 _u=c.execute("INSERT INTO users(name,email,pw,created) VALUES(?,?,?,?)",(nm,em,hash_pw("member1234"),iso())).lastrowid
                 c.execute("INSERT INTO memberships VALUES(?,?, 'member')",(_u,_oid))
-                c.execute("INSERT OR IGNORE INTO profiles VALUES(?,?,?,?,?)",(_u,"","demo@example.com",st,""))
+                c.execute("INSERT OR IGNORE INTO profiles(user_id,phone,sponsor,status,why) VALUES(?,?,?,?,?)",(_u,"","demo@example.com",st,""))
                 if amt: c.execute("INSERT INTO earnings(office_id,user_id,amount,description,date) VALUES(?,?,?,?,date('now'))",(_oid,_u,amt,"Sample earning"))
         c.commit()
     # seed demo
@@ -95,14 +95,15 @@ def init():
         cur = c.execute("INSERT INTO offices(name,slug,invite_code,plan,trial_ends,created,owner_id) VALUES(?,?,?,?,?,?,?)",
                         ("Demo Office", "demo", "DEMO2026", "free", trial, iso(), uid))
         oid = cur.lastrowid
-        c.execute("INSERT INTO memberships VALUES(?,?, 'admin')", (uid, oid))
+        c.execute("INSERT INTO memberships VALUES(?,?, 'super_admin')", (uid, oid))
+        c.execute("INSERT OR IGNORE INTO membership_roles VALUES(?,?, 'super_admin')", (uid, oid))
         for name, phone, stage in [("Adaeze Okafor", "0803 000 0001", "New"), ("Blessing Bello", "0803 000 0002", "Contacted"), ("Chidi Nwosu", "0803 000 0003", "Interested"), ("Fatima Bello", "0803 000 0004", "Presented")]:
             c.execute("INSERT INTO prospects(office_id,owner_id,name,phone,stage,notes,created,updated) VALUES(?,?,?,?,?,?,?,?)", (oid, uid, name, phone, stage, "", iso(), iso()))
         c.execute("INSERT INTO earnings(office_id,user_id,amount,description,date) VALUES(?,?,?,?,date('now'))", (oid, uid, 50000, "Starter pack commission"))
         for nm, em, st in [("Adaeze Okafor","Adaeze@example.com","Pro"),("Blessing Bello","Blessing@example.com","Newbie"),("Chidi Nwosu","Chidi@example.com","Director"),("Fatima Bello","Fatima@example.com","Distributor")]:
             cur2=c.execute("INSERT INTO users(name,email,pw,created) VALUES(?,?,?,?)",(nm,em,hash_pw("member1234"),iso())); mid=cur2.lastrowid
             c.execute("INSERT INTO memberships VALUES(?,?, 'member')",(mid,oid))
-            c.execute("INSERT OR IGNORE INTO profiles VALUES(?,?,?,?,?)",(mid,"", "demo@example.com", st, ""))
+            c.execute("INSERT OR IGNORE INTO profiles(user_id,phone,sponsor,status,why) VALUES(?,?,?,?,?)",(mid,"", "demo@example.com", st, ""))
             c.execute("INSERT INTO earnings(office_id,user_id,amount,description,date) VALUES(?,?,?,?,date('now'))",(oid,mid,120 if nm=="Adaeze Okafor" else 0,"Sample earning" if nm=="Adaeze Okafor" else ""))
         c.execute("INSERT INTO trainings(office_id,title,description,date,created_by) VALUES(?,?,?,?,?)", (oid, "Prospecting Basics", "How to build and work your list", "2026-11-10", uid))
         c.execute("INSERT INTO goals(office_id,user_id,title,target,current,unit,deadline) VALUES(?,?,?,?,?,?,?)", (oid, uid, "New prospects this month", 20, 4, "prospects", "2026-11-30"))
